@@ -1,4 +1,17 @@
-.idea/
+# Build target
+**/target/
+**/build/
+**/out/
 
-/target
+# Gradle files
+**/.gradle/
+
+# Intellij idea files
+**/.idea/
+**/*.iml
+
+# log files
+**/*.log
+
+# Temp files
 **/*.rs.bk
