@@ -1,6 +1,7 @@
 pub mod dom;
 pub mod html;
 pub mod css;
+pub mod style;
 
 fn main() {
 //    let source = "<html> <head> <title> DOM class </title> </head>\
