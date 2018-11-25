@@ -1,46 +1,46 @@
 #[derive(Debug)]
-struct Stylesheet {
+pub struct Stylesheet {
     rules: Vec<Rule>,
 }
 
 #[derive(Debug)]
-struct Rule {
+pub struct Rule {
     selectors: Vec<Selector>,
     declarations: Vec<Declaration>,
 }
 
 #[derive(Debug)]
-enum Selector {
+pub enum Selector {
     Simple(SimpleSelector),
 }
 
 #[derive(Debug)]
-struct SimpleSelector {
+pub struct SimpleSelector {
     tag_name: Option<String>,
     id: Option<String>,
     class: Vec<String>,
 }
 
 #[derive(Debug)]
-struct Declaration {
+pub struct Declaration {
     name: String,
     value: Value,
 }
 
-#[derive(Debug)]
-enum Value {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Value {
     Keyword(String),
     Length(f32, Unit),
     ColorValue(Color),
 }
 
-#[derive(Debug)]
-enum Unit {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Unit {
     Px,
 }
 
-#[derive(Debug)]
-struct Color {
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct Color {
     r: u8,
     g: u8,
     b: u8,
@@ -53,14 +53,18 @@ pub type Specificity = (usize, usize, usize);
 
 impl Selector {
     pub fn specificity(&self) -> Specificity {
-        // TODO
+        let Selector::Simple(ref simple) = *self;
+        let a = simple.id.iter().count();
+        let b = simple.class.len();
+        let c = simple.tag_name.iter().count();
+        (a, b, c)
     }
 }
 
 impl Value {
     pub fn to_px(&self) -> f32 {
         match *self {
-            Value::Length(px, Unix::Px) => px,
+            Value::Length(px, Unit::Px) => px,
             _ => 0.0,
         }
     }
@@ -112,6 +116,9 @@ impl Parser {
             }
         }
         selectors.sort_by(|a, b| b.specificity().cmp(&a.specificity()));
+        for selector in &selectors {
+            println!("selector: {:?}, specificity: {:?}", selector, selector.specificity());
+        }
         selectors
     }
 
@@ -154,7 +161,7 @@ impl Parser {
         declarations
     }
 
-    fn parse_declartion(&mut self) -> Declaration {
+    fn parse_declaration(&mut self) -> Declaration {
         let name = self.parse_identifier();
         self.consume_whitespace();
         assert_eq!(self.consume_char(), ':');
@@ -215,7 +222,7 @@ impl Parser {
         self.consume_while(char::is_whitespace);
     }
 
-    fn consume_while<F>(&mut self, test: F)
+    fn consume_while<F>(&mut self, test: F) -> String
             where F: Fn(char) -> bool {
         let mut res = String::new();
         while !self.eof() && test(self.next_char()) {
