@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::Error;
+
 #[derive(Debug)]
 pub struct Stylesheet {
     pub rules: Vec<Rule>,
@@ -19,6 +22,17 @@ pub struct SimpleSelector {
     pub tag_name: Option<String>,
     pub id: Option<String>,
     pub class: Vec<String>,
+}
+
+impl fmt::Display for SimpleSelector {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), Error> {
+        self.tag_name.as_ref().map(|s| write!(f, "{}", s));
+        self.id.as_ref().map(|s| write!(f, "#{}", s));
+        for s in &self.class {
+            write!(f, ".{}", s);
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -116,9 +130,9 @@ impl Parser {
             }
         }
         selectors.sort_by(|a, b| b.specificity().cmp(&a.specificity()));
-        for selector in &selectors {
-            println!("selector: {:?}, specificity: {:?}", selector, selector.specificity());
-        }
+//        for selector in &selectors {
+//            println!("selector: {:?}, specificity: {:?}", selector, selector.specificity());
+//        }
         selectors
     }
 
@@ -255,7 +269,24 @@ fn valid_identifier_char(c: char) -> bool {
     }
 }
 
-
+impl Stylesheet {
+    pub fn pretty_print(&self) {
+        for rule in &self.rules {
+            let selector_formats: Vec<String> = rule.selectors.iter()
+                .map(|selector|
+                    match selector {
+                        Selector::Simple(simple_selector) => format!("{}", simple_selector),
+                    }
+                )
+                .collect();
+            println!("{} {{", selector_formats.join(", "));
+            for declaration in &rule.declarations {
+                println!("    {:?}: {:?}", declaration.name, declaration.value);
+            };
+            println!("}}");
+        }
+    }
+}
 
 
 
